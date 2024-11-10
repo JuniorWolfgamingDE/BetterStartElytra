@@ -44,7 +44,7 @@ public class ElytraListener implements Listener {
 
         if (location.distanceSquared(event.getPlayer().getLocation()) <= radius) {
             if (event.getPlayer().getGameMode() == GameMode.SURVIVAL) {
-                if (player.getLocation().add(0, -5, 0).getBlock().getType().equals(Material.AIR)) {
+                if (player.getLocation().add(0, -10, 0).getBlock().getType().equals(Material.AIR)) {
                     if (!(glider.contains(player.getUniqueId()))) {
                         glider.add(uuid);
                         if(player.getName().startsWith(Main.getPlugin().getConfig().getString("Geysermc.Prefix"))){
