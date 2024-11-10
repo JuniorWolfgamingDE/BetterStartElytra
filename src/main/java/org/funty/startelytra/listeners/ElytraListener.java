@@ -21,6 +21,8 @@ import org.funty.startelytra.Main;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class ElytraListener implements Listener {
@@ -28,6 +30,11 @@ public class ElytraListener implements Listener {
     private final ItemStack elytra = new ItemStack(Material.ELYTRA);
     private final ItemMeta elytraMeta = this.elytra.getItemMeta();
     private static final ArrayList<UUID> glider = new ArrayList<>();
+    private static final Set<Material> solidBlocks = EnumSet.of(
+        Material.STONE, Material.DIRT, Material.GRASS_BLOCK, Material.COBBLESTONE,
+        Material.SAND, Material.GRAVEL, Material.OAK_PLANKS, Material.BRICKS,
+        Material.CONCRETE, Material.TERRACOTTA
+    );
 
     public ElytraListener() {
         if (elytraMeta != null) {
@@ -53,14 +60,12 @@ public class ElytraListener implements Listener {
         int radiusSquared = Integer.parseInt(Main.getPlugin().getConfig().getString("Radius"));
         radiusSquared *= radiusSquared;
 
-        // Check if the player is within the defined area and is in survival mode
         if (centerLocation.distanceSquared(player.getLocation()) <= radiusSquared && player.getGameMode() == GameMode.SURVIVAL) {
-            // Check if the player is falling down (negative Y velocity)
             if (player.getVelocity().getY() < -0.5) {
                 Material belowBlockType = player.getLocation().add(0, -1, 0).getBlock().getType();
 
-                // Ensure the block below is solid (indicating the player jumped from a surface)
-                if (belowBlockType != Material.AIR && !glider.contains(uuid)) {
+                // Check if the block below is in the set of solid blocks
+                if (solidBlocks.contains(belowBlockType) && !glider.contains(uuid)) {
                     glider.add(uuid);
                     if (player.getName().startsWith(Main.getPlugin().getConfig().getString("Geysermc.Prefix"))) {
                         if (player.getInventory().getChestplate() == null) {
@@ -79,7 +84,6 @@ public class ElytraListener implements Listener {
                 }
             }
         } else {
-            // Reset the player's ability to fly and remove their elytra if they leave the zone or land
             glider.remove(uuid);
             if (player.getGameMode() == GameMode.SURVIVAL) {
                 player.setAllowFlight(false);
