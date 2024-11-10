@@ -1,6 +1,5 @@
 package org.funty.startelytra.listeners;
 
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -54,33 +53,33 @@ public class ElytraListener implements Listener {
         int radiusSquared = Integer.parseInt(Main.getPlugin().getConfig().getString("Radius"));
         radiusSquared *= radiusSquared;
 
-        // Check if the player is within the defined area
-        if (centerLocation.distanceSquared(player.getLocation()) <= radiusSquared) {
-            if (player.getGameMode() == GameMode.SURVIVAL) {
+        // Check if the player is within the defined area and is in survival mode
+        if (centerLocation.distanceSquared(player.getLocation()) <= radiusSquared && player.getGameMode() == GameMode.SURVIVAL) {
+            // Check if the player is falling down (negative Y velocity)
+            if (player.getVelocity().getY() < -0.5) {
                 Material belowBlockType = player.getLocation().add(0, -1, 0).getBlock().getType();
 
-                // Ensure the block below is not a solid full block, slab, or stair
-                if (belowBlockType == Material.AIR || belowBlockType.isTransparent()) {
-                    if (!glider.contains(uuid)) {
-                        glider.add(uuid);
-                        if (player.getName().startsWith(Main.getPlugin().getConfig().getString("Geysermc.Prefix"))) {
-                            if (player.getInventory().getChestplate() == null) {
-                                String displayName = Main.getPlugin().getConfig().getString("Geysermc.Elytra.DisplayName");
-                                String lore = Main.getPlugin().getConfig().getString("Geysermc.Elytra.Lore");
-                                elytraMeta.setDisplayName(displayName);
-                                elytraMeta.setLore(Collections.singletonList(lore));
-                                elytra.setItemMeta(elytraMeta);
-                                player.getInventory().setChestplate(elytra);
-                            } else {
-                                player.sendMessage(Main.getPlugin().getConfig().getString("Geysermc.Messages.ChestOccupied"));
-                            }
+                // Ensure the block below is solid (indicating the player jumped from a surface)
+                if (belowBlockType != Material.AIR && !glider.contains(uuid)) {
+                    glider.add(uuid);
+                    if (player.getName().startsWith(Main.getPlugin().getConfig().getString("Geysermc.Prefix"))) {
+                        if (player.getInventory().getChestplate() == null) {
+                            String displayName = Main.getPlugin().getConfig().getString("Geysermc.Elytra.DisplayName");
+                            String lore = Main.getPlugin().getConfig().getString("Geysermc.Elytra.Lore");
+                            elytraMeta.setDisplayName(displayName);
+                            elytraMeta.setLore(Collections.singletonList(lore));
+                            elytra.setItemMeta(elytraMeta);
+                            player.getInventory().setChestplate(elytra);
+                        } else {
+                            player.sendMessage(Main.getPlugin().getConfig().getString("Geysermc.Messages.ChestOccupied"));
                         }
-                        player.setGliding(true);
-                        player.setAllowFlight(true);
                     }
+                    player.setGliding(true);
+                    player.setAllowFlight(true);
                 }
             }
         } else {
+            // Reset the player's ability to fly and remove their elytra if they leave the zone or land
             glider.remove(uuid);
             if (player.getGameMode() == GameMode.SURVIVAL) {
                 player.setAllowFlight(false);
